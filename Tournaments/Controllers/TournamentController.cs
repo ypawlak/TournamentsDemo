@@ -15,6 +15,8 @@ namespace Tournaments.Controllers
 {
     public class TournamentController : Controller
     {
+        private const int PageSize = 5;
+
         private ApplicationDbContext db = System.Web.HttpContext.Current
             .GetOwinContext().Get<ApplicationDbContext>();
 
@@ -70,9 +72,7 @@ namespace Tournaments.Controllers
                     break;
             }
 
-            int pageSize = 3;
-            int pageNumber = (page ?? 1);
-            return View(tournaments.ToPagedList(pageNumber, pageSize));
+            return View(tournaments.ToPagedList(page ?? 1, PageSize));
         }
 
         // GET: /Tournament/Details/5
