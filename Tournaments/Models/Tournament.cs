@@ -13,13 +13,11 @@ namespace Tournaments.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        public string Branch { get; set; }
+        public string Sport { get; set; }
         [DataType(DataType.DateTime)]
-        [Required]
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
         [DataType(DataType.DateTime)]
-        [Required]
-        public DateTime RegistrationDeadline { get; set; }
+        public DateTime? RegistrationDeadline { get; set; }
         public string Address { get; set; }
         //[ForeignKey("OwnerId")]
         public virtual ApplicationUser Owner { get; set; }

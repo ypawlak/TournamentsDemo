@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/packages
+/Tournaments/bin
+/Tournaments/obj/Debug
+/Tournaments/App_Data

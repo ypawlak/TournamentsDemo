@@ -9,6 +9,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Tournaments.Models;
+using PagedList;
 
 namespace Tournaments.Controllers
 {
@@ -18,9 +19,60 @@ namespace Tournaments.Controllers
             .GetOwinContext().Get<ApplicationDbContext>();
 
         // GET: /Tournament/
-        public ActionResult Index()
+        public ActionResult Index(string sortOrder, string currentFilter, string searchString, int? page)
         {
-            return View(db.Tournaments.ToList());
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewBag.DateSortParam = sortOrder == "date_asc" ? "date_desc" : "date_asc";
+            ViewBag.SportSortParam = sortOrder == "sport_asc" ? "sport_desc" : "sport_asc";
+            ViewBag.OwnerSortParam = sortOrder == "owner_asc" ? "owner_desc" : "owner_asc";
+
+            if (searchString != null)
+                page = 1;
+            else
+                searchString = currentFilter;
+
+            ViewBag.CurrentFilter = searchString;
+            
+            var tournaments = from s in db.Tournaments
+                           select s;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                tournaments = tournaments.Where(s => s.Name.Contains(searchString));
+            }
+
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    tournaments = tournaments.OrderByDescending(s => s.Name);
+                    break;
+                case "date_asc":
+                    tournaments = tournaments.OrderBy(s => s.Date);
+                    break;
+                case "date_desc":
+                    tournaments = tournaments.OrderByDescending(s => s.Date);
+                    break;
+                case "sport_asc":
+                    tournaments = tournaments.OrderBy(s => s.Sport);
+                    break;
+                case "sport_desc":
+                    tournaments = tournaments.OrderByDescending(s => s.Sport);
+                    break;
+                case "owner_asc":
+                    tournaments = tournaments.OrderBy(s => s.Owner.UserName);
+                    break;
+                case "owner_desc":
+                    tournaments = tournaments.OrderByDescending(s => s.Owner.UserName);
+                    break;
+                default:
+                    tournaments = tournaments.OrderBy(s => s.Name);
+                    break;
+            }
+
+            int pageSize = 3;
+            int pageNumber = (page ?? 1);
+            return View(tournaments.ToPagedList(pageNumber, pageSize));
         }
 
         // GET: /Tournament/Details/5
@@ -52,7 +104,7 @@ namespace Tournaments.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Create([Bind(Include="ID,Name,Branch")] Tournament tournament)
+        public ActionResult Create([Bind(Include = "ID,Name,Sport,Date")] Tournament tournament)
         {
             if (ModelState.IsValid)
             {
@@ -88,7 +140,7 @@ namespace Tournaments.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit([Bind(Include="ID,Name,Branch")] Tournament tournament)
+        public ActionResult Edit([Bind(Include = "ID,Name,Sport")] Tournament tournament)
         {
             if (ModelState.IsValid)
             {
