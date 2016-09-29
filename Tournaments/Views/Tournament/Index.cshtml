@@ -54,9 +54,19 @@
                 @Html.DisplayFor(modelItem => item.Date)
             </td>
             <td>
-                @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
-                @Html.ActionLink("Details", "Details", new { id = item.ID }) |
-                @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+                @if (ViewBag.currentUserId == item.Owner.Id)
+                {
+                     @Html.ActionLink("Edit", "Edit", new { id = item.ID })
+                     @:|
+                }
+
+                @Html.ActionLink("Details", "Details", new { id = item.ID })
+                
+                @if (ViewBag.currentUserId == item.Owner.Id)
+                {
+                    @:|
+                    @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+                }
             </td>
         </tr>
     }

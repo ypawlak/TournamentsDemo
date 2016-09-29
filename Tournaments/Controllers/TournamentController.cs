@@ -23,9 +23,12 @@ namespace Tournaments.Controllers
         // GET: /Tournament/
         public ActionResult Index(string sortOrder, string currentFilter, string searchString, int? page)
         {
+            ViewBag.errorMessage = string.Empty;
+            ViewBag.currentUserId = User.Identity.GetUserId();
+
             ViewBag.CurrentSort = sortOrder;
-            ViewBag.NameSortParam = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            ViewBag.DateSortParam = sortOrder == "date_asc" ? "date_desc" : "date_asc";
+            ViewBag.NameSortParam = sortOrder == "name_asc" ? "name_desc" : "name_asc";
+            ViewBag.DateSortParam = String.IsNullOrEmpty(sortOrder) ? "" : "date_desc";
             ViewBag.SportSortParam = sortOrder == "sport_asc" ? "sport_desc" : "sport_asc";
             ViewBag.OwnerSortParam = sortOrder == "owner_asc" ? "owner_desc" : "owner_asc";
 
@@ -49,8 +52,8 @@ namespace Tournaments.Controllers
                 case "name_desc":
                     tournaments = tournaments.OrderByDescending(s => s.Name);
                     break;
-                case "date_asc":
-                    tournaments = tournaments.OrderBy(s => s.Date);
+                case "name_asc":
+                    tournaments = tournaments.OrderBy(s => s.Name);
                     break;
                 case "date_desc":
                     tournaments = tournaments.OrderByDescending(s => s.Date);
@@ -68,7 +71,7 @@ namespace Tournaments.Controllers
                     tournaments = tournaments.OrderByDescending(s => s.Owner.UserName);
                     break;
                 default:
-                    tournaments = tournaments.OrderBy(s => s.Name);
+                    tournaments = tournaments.OrderBy(s => s.Date);
                     break;
             }
 
@@ -88,6 +91,9 @@ namespace Tournaments.Controllers
             {
                 return HttpNotFound();
             }
+
+            ViewBag.errorMessage = string.Empty;
+            ViewBag.currentUserId = User.Identity.GetUserId();
             return View(tournament);
         }
 
@@ -104,7 +110,7 @@ namespace Tournaments.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Create([Bind(Include = "ID,Name,Sport,Date")] Tournament tournament)
+        public ActionResult Create([Bind(Include = "ID,Name,Sport,Date,RegistrationDeadline,Address,MaxPlayersNumber")] Tournament tournament)
         {
             if (ModelState.IsValid)
             {
@@ -120,6 +126,7 @@ namespace Tournaments.Controllers
 
         // GET: /Tournament/Edit/5
         [Authorize]
+        [HandleError]
         public ActionResult Edit(long? id)
         {
             if (id == null)
@@ -131,6 +138,13 @@ namespace Tournaments.Controllers
             {
                 return HttpNotFound();
             }
+
+            if (tournament.Owner.Id != User.Identity.GetUserId())
+            {
+                ViewBag.errorMessage = "Insufficient privileges to edit the tournament. Only owners can edit their tournaments.";
+                return View("Error");
+            }
+
             return View(tournament);
         }
 
@@ -140,7 +154,7 @@ namespace Tournaments.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public ActionResult Edit([Bind(Include = "ID,Name,Sport")] Tournament tournament)
+        public ActionResult Edit([Bind(Include = "ID,Name,Sport,Date,RegistrationDeadline,Address,MaxPlayersNumber")] Tournament tournament)
         {
             if (ModelState.IsValid)
             {
@@ -153,6 +167,7 @@ namespace Tournaments.Controllers
 
         // GET: /Tournament/Delete/5
         [Authorize]
+        [HandleError]
         public ActionResult Delete(long? id)
         {
             if (id == null)
@@ -164,6 +179,13 @@ namespace Tournaments.Controllers
             {
                 return HttpNotFound();
             }
+
+            if (tournament.Owner.Id != User.Identity.GetUserId())
+            {
+                ViewBag.errorMessage = "Insufficient privileges to delete the tournament. Only owners can delete their tournaments.";
+                return View("Error");
+            }
+
             return View(tournament);
         }
 
